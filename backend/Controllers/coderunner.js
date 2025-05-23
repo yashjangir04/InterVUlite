@@ -37,6 +37,14 @@ io.on("connection", (socket) => {
     socket.to(roomId).emit("output-update", output);
   });
 
+  socket.on("title-change", ({ roomId, title }) => {
+    socket.to(roomId).emit("title-update", title);
+  });
+
+  socket.on("desc-change", ({ roomId, desc }) => {
+    socket.to(roomId).emit("desc-update", desc );
+  });
+
   socket.on("disconnect", () => {
     console.log("❌ Disconnected:", socket.id);
   });

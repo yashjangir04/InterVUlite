@@ -9,10 +9,13 @@ const Code = () => {
   const [code, setCode] = useState("// Write your code in C++");
   const [input, setInput] = useState(""); // 🔹 New state for input
   const [output, setOutput] = useState("");
+  const [title, setTitle] = useState("");
+  const [desc, setDesc] = useState("");
   const socketRef = useRef(null);
   const roomId = "1234";
   const navigate = useNavigate();
   const [loggedInUser, setloggedInUser] = useState("");
+  const storeQue = [];
 
   useEffect(() => {
     const verifyToken = async () => {
@@ -71,6 +74,14 @@ const Code = () => {
       setOutput(out);
     });
 
+    socket.on("title-update", (tit) => {
+      setTitle(tit);
+    });
+
+    socket.on("desc-update", (des) => {
+      setDesc(des);
+    });
+
     return () => {
       socket.disconnect();
       console.log("🧹 Socket disconnected");
@@ -85,6 +96,16 @@ const Code = () => {
   const handleChangeMainInput = (value) => {
     setInput(value);
     socketRef.current.emit("input-change", { roomId, input: value });
+  };
+
+  const handleTitle = (value) => {
+    setTitle(value);
+    socketRef.current.emit("title-change", { roomId, title: value });
+  };
+
+  const handleDesc = (value) => {
+    setDesc(value);
+    socketRef.current.emit("desc-change", { roomId, desc: value });
   };
 
   const compileCode = async () => {
@@ -105,12 +126,11 @@ const Code = () => {
     <div className="w-full h-screen flex flex-row bg-zinc-800 text-zinc-400 overflow-hidden">
       <div className="w-1/2 flex flex-col px-4 py-8 h-screen overflow-y-scroll">
         <div className="title">
-          {/* <h1 className="text-white text-4xl font-bold tracking-tighter">
-            Zero Array Transformation <span className="text-lime-400 ">III</span>
-          </h1> */}
           <textarea
             spellCheck={false}
             autoCorrect="off"
+            value={title}
+            onChange={(e) => handleTitle(e.target.value)}
             autoCapitalize="off"
             rows="1"
             style={{ width: "100%", height: "50px" }}
@@ -119,21 +139,11 @@ const Code = () => {
           />
         </div>
         <div className="desc">
-          {/* <p className="text-white mt-12">
-            Given an array nums with n objects colored red, white, or blue, sort
-            them in-place so that objects of the same color are adjacent, with
-            the colors in the order red, white, and blue.<br></br>
-            <br></br>
-            We will use the integers 0, 1, and 2 to represent the color red,
-            white, and blue, respectively.
-            <br></br>
-            <br></br>
-            You must solve this problem without using the library's sort
-            function.
-          </p> */}
           <textarea
             rows="6"
             style={{ width: "100%" }}
+            value={desc}
+            onChange={(e) => handleDesc(e.target.value)}
             placeholder="Description"
             className="outline-none text-white tracking-tighter overflow-hidden mt-12 text-md placeholder:text-zinc-500"
           />
@@ -167,66 +177,8 @@ const Code = () => {
             </div>
           </div>
         </div>
-        <div className="example mt-10">
-          <h1 className="text-white text-lg tracking-tighter font-semibold">
-            Example 1
-          </h1>
-          <div className="w-full flex flex-row mt-2 gap-2">
-            <div className="w-1/2 border-2 border-zinc-700 rounded-md">
-              <h4 className="text-white bg-zinc-700 px-2 py-1 text-sm">
-                Input
-              </h4>
-              <textarea
-                rows="5"
-                style={{ width: "100%" }}
-                placeholder="// Sample Input //"
-                className="outline-none resize-none mt-2 px-2 placeholder:text-sm placeholder:text-zinc-500 text-white text-sm"
-              />
-            </div>
-            <div className="w-1/2 border-2 border-zinc-700 rounded-md">
-              <h4 className="text-white bg-zinc-700 px-2 py-1 text-sm">
-                Output
-              </h4>
-              <textarea
-                rows="5"
-                style={{ width: "100%" }}
-                placeholder="// Sample Output //"
-                className="outline-none resize-none mt-2 px-2 placeholder:text-sm placeholder:text-zinc-500 text-white text-sm"
-              />
-            </div>
-          </div>
-        </div>
-        <div className="example mt-10">
-          <h1 className="text-white text-lg tracking-tighter font-semibold">
-            Example 1
-          </h1>
-          <div className="w-full flex flex-row mt-2 gap-2">
-            <div className="w-1/2 border-2 border-zinc-700 rounded-md">
-              <h4 className="text-white bg-zinc-700 px-2 py-1 text-sm">
-                Input
-              </h4>
-              <textarea
-                rows="5"
-                style={{ width: "100%" }}
-                placeholder="// Sample Input //"
-                className="outline-none resize-none mt-2 px-2 placeholder:text-sm placeholder:text-zinc-500 text-white text-sm"
-              />
-            </div>
-            <div className="w-1/2 border-2 border-zinc-700 rounded-md">
-              <h4 className="text-white bg-zinc-700 px-2 py-1 text-sm">
-                Output
-              </h4>
-              <textarea
-                rows="5"
-                style={{ width: "100%" }}
-                placeholder="// Sample Output //"
-                className="outline-none resize-none mt-2 px-2 placeholder:text-sm placeholder:text-zinc-500 text-white text-sm"
-              />
-            </div>
-          </div>
-        </div>
       </div>
-      <div className="w-1/2 h-98%  bg-zinc-800 px-2 border-l-6 border-black py-2">
+      <div className="w-1/2 h-98%  bg-zinc-800 px-2 border-l-6 border-black py-2 overflow-y-scroll">
         <div className="bg-zinc-700 rounded-md">
           <div className="h-9 flex flex-row items-center gap-1 px-2">
             <HiCode className="text-lime-400 text-md" />
