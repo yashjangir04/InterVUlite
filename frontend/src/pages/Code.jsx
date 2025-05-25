@@ -6,6 +6,7 @@ import { HiCode } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import { FaPlus } from "react-icons/fa";
+import { IoIosWarning } from "react-icons/io";
 
 const Code = () => {
   const { roomID } = useParams();
@@ -199,35 +200,6 @@ const Code = () => {
             }`}
           />
         </div>
-        {/* <div className="example mt-10">
-          <h1 className="text-white text-lg tracking-tighter font-semibold">
-            Example 1
-          </h1>
-          <div className="w-full flex flex-row mt-2 gap-2">
-            <div className="w-1/2 border-2 border-zinc-700 rounded-md">
-              <h4 className="text-white bg-zinc-700 px-2 py-1 text-sm">
-                Input
-              </h4>
-              <textarea
-                rows="5"
-                style={{ width: "100%" }}
-                placeholder="// Sample Input //"
-                className="outline-none resize-none mt-2 px-2 placeholder:text-sm placeholder:text-zinc-500 text-white text-sm"
-              />
-            </div>
-            <div className="w-1/2 border-2 border-zinc-700 rounded-md">
-              <h4 className="text-white bg-zinc-700 px-2 py-1 text-sm">
-                Output
-              </h4>
-              <textarea
-                rows="5"
-                style={{ width: "100%" }}
-                placeholder="// Sample Output //"
-                className="outline-none resize-none mt-2 px-2 placeholder:text-sm placeholder:text-zinc-500 text-white text-sm"
-              />
-            </div>
-          </div>
-        </div> */}
         <div className="">{items}</div>
         <button onClick={addNewCol} className="cursor-pointer">
           <div className="w-full flex justify-center items-center mt-4 p-2 border-zinc-600 border-2 border-dotted">
@@ -270,13 +242,18 @@ const Code = () => {
             </p>
           </div>
         </div>
-
-        <button
-          onClick={compileCode}
-          className="bg-[#02B128] text-white px-4 py-2 border-2 border-[#02B128] rounded-md cursor-pointer hover:bg-transparent hover:text-[#02B128] hover:border-2 duration-300 scale-103 text-sm mt-2 font-semibold"
-        >
-          Run
-        </button>
+        <div className="w-full flex flex-row justify-between items-center">
+          <button
+            onClick={compileCode}
+            className="bg-[#02B128] text-white px-4 py-2 border-2 border-[#02B128] rounded-md cursor-pointer hover:bg-transparent hover:text-[#02B128] hover:border-2 duration-300 scale-103 text-sm mt-2 font-semibold"
+            >
+            Run
+          </button>
+          <div className="flex flex-row w-3/4 gap-2 mt-2">
+            <IoIosWarning className="text-red-600 text-xl"/>
+            <h1 className="text-red-600 text-sm ">JDoodle currently doesn't support "endl" or "\n" , use "/" or any other character to represent newline in the output.</h1>
+          </div>
+        </div>
       </div>
     </div>
   );
