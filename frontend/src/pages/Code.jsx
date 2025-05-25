@@ -19,6 +19,7 @@ const Code = () => {
   const [loggedInUser, setloggedInUser] = useState("");
   const [col, setCol] = useState(0);
   const [items, setItems] = useState([]);
+  const [isHost, setIsHost] = useState(false);
 
   useEffect(() => {
     const verifyToken = async () => {
@@ -63,6 +64,10 @@ const Code = () => {
     socket.on("connect", () => {
       console.log("✅ Connected:", socket.id);
       socket.emit("join-room", roomID);
+    });
+
+    socket.on("host-status", (status) => {
+      setIsHost(status);
     });
 
     socket.on("code-update", (newCode) => {
@@ -137,11 +142,13 @@ const Code = () => {
   };
 
   const handleTitle = (value) => {
+    if (!isHost) return; // Only host can update
     setTitle(value);
     socketRef.current.emit("title-change", { roomID, title: value });
   };
 
   const handleDesc = (value) => {
+    if (!isHost) return; // Only host can update
     setDesc(value);
     socketRef.current.emit("desc-change", { roomID, desc: value });
   };
@@ -171,9 +178,12 @@ const Code = () => {
             onChange={(e) => handleTitle(e.target.value)}
             autoCapitalize="off"
             rows="1"
+            disabled={!isHost}
             style={{ width: "100%", height: "50px" }}
             placeholder="Question Title"
-            className="outline-none overflow-hidden resize-none text-white text-4xl font-bold tracking-tighter placeholder:text-zinc-500"
+            className={`outline-none overflow-hidden text-white text-4xl font-bold tracking-tighter placeholder:text-zinc-500 ${
+              !isHost ? "cursor-not-allowed" : ""
+            }`}
           />
         </div>
         <div className="desc">
@@ -182,8 +192,11 @@ const Code = () => {
             style={{ width: "100%" }}
             value={desc}
             onChange={(e) => handleDesc(e.target.value)}
+            disabled={!isHost}
             placeholder="Description"
-            className="outline-none text-white tracking-tighter overflow-hidden mt-12 text-md placeholder:text-zinc-500"
+            className={`outline-none text-white tracking-tighter overflow-hidden mt-12 text-md placeholder:text-zinc-500 ${
+              !isHost ? "cursor-not-allowed" : ""
+            }`}
           />
         </div>
         {/* <div className="example mt-10">
@@ -215,13 +228,10 @@ const Code = () => {
             </div>
           </div>
         </div> */}
-        <div className="">
-          {items}
-        </div>
+        <div className="">{items}</div>
         <button onClick={addNewCol} className="cursor-pointer">
           <div className="w-full flex justify-center items-center mt-4 p-2 border-zinc-600 border-2 border-dotted">
-            
-              <FaPlus className="text-lg text-zinc-500" />
+            <FaPlus className="text-lg text-zinc-500" />
           </div>
         </button>
       </div>
