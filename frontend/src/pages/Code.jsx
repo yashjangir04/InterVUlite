@@ -3,49 +3,47 @@ import Editor from "@monaco-editor/react";
 import { io } from "socket.io-client";
 import axios from "axios";
 import { HiCode } from "react-icons/hi";
-import { useNavigate } from "react-router-dom";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { FaPlus } from "react-icons/fa";
 import { IoIosWarning } from "react-icons/io";
 
 const Code = () => {
   const { roomID } = useParams();
   const [code, setCode] = useState("// Write your code in C++");
-  const [input, setInput] = useState(""); // 🔹 New state for input
+  const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
   const socketRef = useRef(null);
   const navigate = useNavigate();
-  const [loggedInUser, setloggedInUser] = useState("");
-  const [col, setCol] = useState(0);
-  const [items, setItems] = useState([]);
+  const [loggedInUser, setLoggedInUser] = useState("");
   const [isHost, setIsHost] = useState(false);
 
+  // examples: array of { input: string, output: string }
+  const [examples, setExamples] = useState([]);
+
   useEffect(() => {
+    // Verify user token and redirect if invalid
     const verifyToken = async () => {
       const token = localStorage.getItem("token");
       if (!token) {
         navigate("/login");
         return;
       }
-
       try {
         const res = await fetch("http://localhost:3000/auth/verify-token", {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${token}`, // ✅ Correct format
+            Authorization: `Bearer ${token}`,
           },
         });
-
         const data = await res.json();
-
         if (!data.success) {
           localStorage.removeItem("token");
           localStorage.removeItem("loggedInUser");
-          navigate(`/code/${roomID}`);
+          navigate("/login");
         } else {
-          setloggedInUser(data.username);
+          setLoggedInUser(data.username);
         }
       } catch (err) {
         console.error("Verification error:", err);
@@ -56,10 +54,10 @@ const Code = () => {
 
     verifyToken();
 
+    // Setup socket connection
     socketRef.current = io("http://localhost:3001", {
       transports: ["websocket"],
     });
-
     const socket = socketRef.current;
 
     socket.on("connect", () => {
@@ -69,6 +67,11 @@ const Code = () => {
 
     socket.on("host-status", (status) => {
       setIsHost(status);
+    });
+
+    socket.on("room-full", () => {
+      alert("❌ Room is full.");
+      navigate("/"); // redirect to homepage or error page
     });
 
     socket.on("code-update", (newCode) => {
@@ -91,45 +94,53 @@ const Code = () => {
       setDesc(des);
     });
 
+    // Receive full examples array (initial load or update)
+    socket.on("examples-update", (newExamples) => {
+      setExamples(newExamples);
+    });
+
+    // When a new example is added (server sends updated array)
+    socket.on("example-added", (newExamples) => {
+      setExamples(newExamples);
+    });
+
+    // When an example input or output is updated
+    socket.on("example-changed", ({ index, field, value }) => {
+      setExamples((prevExamples) => {
+        const updated = [...prevExamples];
+        if (updated[index]) {
+          updated[index] = {
+            ...updated[index],
+            [field]: value,
+          };
+        }
+        return updated;
+      });
+    });
+
     return () => {
       socket.disconnect();
       console.log("🧹 Socket disconnected");
     };
-  }, []);
+  }, [roomID, navigate]);
 
-  const addNewCol = () => {
-    const newIndex = col + 1;
-    setCol(newIndex);
+  const addNewExample = () => {
+    const newExample = { input: "", output: "" };
+    const newExamples = [...examples, newExample];
+    setExamples(newExamples);
+    socketRef.current.emit("add-example", { roomID, examples: newExamples });
+  };
 
-    const newExample = (
-      <div key={newIndex} className="example mt-10">
-        <h1 className="text-white text-lg tracking-tighter font-semibold">
-          Example {newIndex}
-        </h1>
-        <div className="w-full flex flex-row mt-2 gap-2">
-          <div className="w-1/2 border-2 border-zinc-700 rounded-md">
-            <h4 className="text-white bg-zinc-700 px-2 py-1 text-sm">Input</h4>
-            <textarea
-              rows="5"
-              style={{ width: "100%" }}
-              placeholder="// Sample Input //"
-              className="outline-none resize-none mt-2 px-2 placeholder:text-sm placeholder:text-zinc-500 text-white text-sm"
-            />
-          </div>
-          <div className="w-1/2 border-2 border-zinc-700 rounded-md">
-            <h4 className="text-white bg-zinc-700 px-2 py-1 text-sm">Output</h4>
-            <textarea
-              rows="5"
-              style={{ width: "100%" }}
-              placeholder="// Sample Output //"
-              className="outline-none resize-none mt-2 px-2 placeholder:text-sm placeholder:text-zinc-500 text-white text-sm"
-            />
-          </div>
-        </div>
-      </div>
-    );
-
-    setItems((prevItems) => [...prevItems, newExample]);
+  const handleExampleChange = (index, field, value) => {
+    setExamples((prev) => {
+      const updated = [...prev];
+      updated[index] = {
+        ...updated[index],
+        [field]: value,
+      };
+      return updated;
+    });
+    socketRef.current.emit("example-change", { roomID, index, field, value });
   };
 
   const handleChange = (value) => {
@@ -143,13 +154,13 @@ const Code = () => {
   };
 
   const handleTitle = (value) => {
-    if (!isHost) return; // Only host can update
+    if (!isHost) return;
     setTitle(value);
     socketRef.current.emit("title-change", { roomID, title: value });
   };
 
   const handleDesc = (value) => {
-    if (!isHost) return; // Only host can update
+    if (!isHost) return;
     setDesc(value);
     socketRef.current.emit("desc-change", { roomID, desc: value });
   };
@@ -159,9 +170,13 @@ const Code = () => {
       const res = await axios.post("http://localhost:3000/compile", {
         code,
         input,
-        roomID, // 🔹 send input too
+        roomID,
       });
       setOutput(res.data.output);
+      socketRef.current.emit("output-change", {
+        roomID,
+        output: res.data.output,
+      });
     } catch (err) {
       setOutput("❌ Error running code");
       console.error(err);
@@ -189,7 +204,7 @@ const Code = () => {
         </div>
         <div className="desc">
           <textarea
-            rows="6"
+            rows="10"
             style={{ width: "100%" }}
             value={desc}
             onChange={(e) => handleDesc(e.target.value)}
@@ -200,17 +215,62 @@ const Code = () => {
             }`}
           />
         </div>
-        <div className="">{items}</div>
-        <button onClick={addNewCol} className="cursor-pointer">
-          <div className="w-full flex justify-center items-center mt-4 p-2 border-zinc-600 border-2 border-dotted">
-            <FaPlus className="text-lg text-zinc-500" />
+
+        {/* Rendering all the examples */}
+        <div className="mt-6">
+          {examples.map((example, index) => (
+            <div key={index} className="example mt-10">
+              <h1 className="text-white text-lg tracking-tighter font-semibold">
+                Example {index + 1}
+              </h1>
+              <div className="w-full flex flex-row mt-2 gap-2">
+                <div className="w-1/2 border-2 border-zinc-700 rounded-md">
+                  <h4 className="text-white bg-zinc-700 px-2 py-1 text-sm">
+                    Input
+                  </h4>
+                  <textarea
+                    rows="5"
+                    style={{ width: "100%" }}
+                    placeholder="// Sample Input //"
+                    className="outline-none resize-none mt-2 px-2 placeholder:text-sm placeholder:text-zinc-500 text-white text-sm"
+                    value={example.input}
+                    onChange={(e) =>
+                      handleExampleChange(index, "input", e.target.value)
+                    }
+                  />
+                </div>
+                <div className="w-1/2 border-2 border-zinc-700 rounded-md">
+                  <h4 className="text-white bg-zinc-700 px-2 py-1 text-sm">
+                    Output
+                  </h4>
+                  <textarea
+                    rows="5"
+                    style={{ width: "100%" }}
+                    placeholder="// Sample Output //"
+                    className="outline-none resize-none mt-2 px-2 placeholder:text-sm placeholder:text-zinc-500 text-white text-sm"
+                    value={example.output}
+                    onChange={(e) =>
+                      handleExampleChange(index, "output", e.target.value)
+                    }
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <button onClick={addNewExample} className="cursor-pointer mt-4">
+          <div className="w-full flex gap-2 justify-center items-center p-2 border-zinc-600 border-2 border-dotted">
+            <FaPlus className="text-md text-zinc-500" />
+            <h1 className="text-md">Add Example</h1>
           </div>
         </button>
       </div>
-      <div className="w-1/2 h-98%  bg-zinc-800 px-2 border-l-6 border-black py-2 overflow-y-scroll">
+
+      <div className="w-1/2 h-[98%] bg-zinc-800 px-2 border-l-6 border-black py-2 overflow-y-scroll">
         <div className="bg-zinc-700 rounded-md">
           <div className="h-9 flex flex-row items-center gap-1 px-2">
-            <HiCode className="text-lime-400 text-md" />
+            <HiCode className="text-green-500 text-md" />
             <h2 className="text-white text-sm">Code</h2>
           </div>
 
@@ -237,21 +297,21 @@ const Code = () => {
           </div>
           <div className="w-1/2 border-2 border-zinc-700 rounded-md">
             <h4 className="text-white bg-zinc-700 px-2 py-1 text-sm">Output</h4>
-            <p className="mt-2 px-2 placeholder:text-sm placeholder:text-zinc-500 text-white text-sm">
-              {output}
+            <p className="mt-2 px-2 placeholder:text-sm placeholder:text-zinc-500 text-white text-sm min-h-[115px] whitespace-pre-wrap break-words">
+              {output || <span className="text-zinc-500">// Output //</span>}
             </p>
           </div>
         </div>
-        <div className="w-full flex flex-row justify-between items-center">
+        <div className="w-full flex flex-row justify-between items-center mt-2">
           <button
             onClick={compileCode}
-            className="bg-[#02B128] text-white px-4 py-2 border-2 border-[#02B128] rounded-md cursor-pointer hover:bg-transparent hover:text-[#02B128] hover:border-2 duration-300 scale-103 text-sm mt-2 font-semibold"
-            >
+            className="bg-green-600 rounded-md text-white font-semibold hover:bg-green-700 transition duration-300 px-4 py-2 cursor-pointer text-sm"
+          >
             Run
           </button>
-          <div className="flex flex-row w-3/4 gap-2 mt-2">
-            <IoIosWarning className="text-red-600 text-xl"/>
-            <h1 className="text-red-600 text-sm ">JDoodle currently doesn't support "endl" or "\n" , use "/" or any other character to represent newline in the output.</h1>
+          <div className="flex flex-row w-3/4 gap-1">
+            <IoIosWarning className="text-red-600 text-lg mt-[0.2rem]"/>
+            <h1 className="text-sm text-red-600">Compiler doesn't support "endl" and "\n", kindly use any other character to represent a new line.</h1>
           </div>
         </div>
       </div>
