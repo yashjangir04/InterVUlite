@@ -12,8 +12,8 @@ const Vuroom = () => {
   const [loggedInUser, setloggedInUser] = useState("");
 
   useEffect(() => {
-    const appID = 671341082;
-    const serverSecret = "734a383367e26eaddd0540b8a4708427";
+    const appID = 1629832151;
+    const serverSecret = "432dc63865bf04968f0f1f3d5a75f1d5";
     const username = localStorage.getItem("loggedInUser") || "Guest";
 
     const verifyToken = async () => {
@@ -104,7 +104,7 @@ const Vuroom = () => {
         navigate("/login"); // redirect to login
       } else {
         // Authenticated — open the /code/:roomID page in a new tab
-        navigate(`/code/${roomID}`);
+        window.open(`/code/${roomID}`, '_blank');
       }
     } catch (err) {
       console.error("Verification error:", err);
@@ -115,12 +115,12 @@ const Vuroom = () => {
   };
 
   return (
-    <div style={{ position: "relative", width: "100vw", height: "100vh" }}>
-      <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
+    <div style={{ position: "relative", width: "100vw", height: "100vh" }} className="bg-zinc-800"> 
+      <div ref={containerRef} style={{ width: "100%", height: "100%" }}/>
       <button
         ref={buttonRef}
         onClick={navToRoom}
-        className="bg-orange-500 text-white hover:bg-transparent hover:border-2 hover:border-orange-500 hover:text-orange-500 duration-300  fixed top-10 right-10 z-100 text-4xl rounded-full h-16 w-16 flex justify-center items-center cursor-pointer hover:scale-110"
+        className="bg-orange-500 text-white hover:bg-transparent hover:border-2 hover:border-orange-500 hover:text-orange-500 duration-300  fixed top-10 left-10 z-100 text-4xl rounded-full h-16 w-16 flex justify-center items-center cursor-pointer hover:scale-110"
       >
         <HiCode />
       </button>

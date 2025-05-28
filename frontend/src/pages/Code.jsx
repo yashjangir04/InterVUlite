@@ -6,6 +6,7 @@ import { HiCode } from "react-icons/hi";
 import { useNavigate, useParams } from "react-router-dom";
 import { FaPlus } from "react-icons/fa";
 import { IoIosWarning } from "react-icons/io";
+import { FaArrowRightFromBracket } from "react-icons/fa6";  
 
 const Code = () => {
   const { roomID } = useParams();
@@ -225,8 +226,9 @@ const Code = () => {
               </h1>
               <div className="w-full flex flex-row mt-2 gap-2">
                 <div className="w-1/2 border-2 border-zinc-700 rounded-md">
-                  <h4 className="text-white bg-zinc-700 px-2 py-1 text-sm">
+                  <h4 className="text-white bg-zinc-700 px-2 py-1 text-sm flex flex-row justify-between">
                     Input
+                    <button className="cursor-pointer" onClick={(e) => handleChangeMainInput(example.input)}><FaArrowRightFromBracket className="mt-1 mr-1 text-sm"/></button>
                   </h4>
                   <textarea
                     rows="5"
