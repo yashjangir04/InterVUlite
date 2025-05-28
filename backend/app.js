@@ -8,6 +8,7 @@ const { Server } = require("socket.io");
 const { stdin } = require("process");
 const { initSocket } = require("./Controllers/coderunner.js");
 const ensureAuthenticated = require("./Middlewares/Auth.js");
+const activeRooms = {} ;
 
 require("dotenv").config();
 require("./Models/db");
@@ -53,6 +54,33 @@ app.post("/compile", async (req, res) => {
     console.error("JDoodle API error:", err.message);
     res.status(500).json({ output: "❌ Compilation failed. Try again." });
   }
+});
+
+app.get("/room/check", (req, res) => {
+  const { roomID } = req.query;
+  const now = Date.now();
+  const TTL = 60 * 60 * 1000; // 1 hour in milliseconds
+
+  if (!roomID) {
+    return res.status(400).json({ error: "roomID required" });
+  }
+
+  const roomCreatedAt = activeRooms[roomID];
+
+  if (roomCreatedAt) {
+    const isExpired = now - roomCreatedAt >= TTL;
+
+    // If expired, update the timestamp (to recreate the room)
+    if (isExpired) {
+      activeRooms[roomID] = now;
+    }
+
+    return res.json({ exists: true, isExpired });
+  }
+
+  // If room doesn't exist, create it now
+  activeRooms[roomID] = now;
+  return res.json({ exists: false, isExpired: true });
 });
 
 app.listen(PORT, () => {

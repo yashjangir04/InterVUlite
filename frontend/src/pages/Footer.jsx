@@ -10,7 +10,7 @@ const Footer = () => {
           <h1 className="text-zinc-500 text-sm mt-1 ">
             <FaRegCopyright />
           </h1>
-          <h1 className="text-zinc-500 text-sm"> {year} InterVU - YashJangir . All rights reserved.</h1>
+          <h1 className="text-zinc-500 text-sm"> {year} InterVU - Yash Jangir . All rights reserved.</h1>
         </div>
       </div>
     </div>

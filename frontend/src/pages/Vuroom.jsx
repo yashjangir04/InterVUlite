@@ -120,6 +120,7 @@ const Vuroom = () => {
       <button
         ref={buttonRef}
         onClick={navToRoom}
+        aria-label="Code Room"
         className="bg-orange-500 text-white hover:bg-transparent hover:border-2 hover:border-orange-500 hover:text-orange-500 duration-300  fixed top-10 left-10 z-100 text-4xl rounded-full h-16 w-16 flex justify-center items-center cursor-pointer hover:scale-110"
       >
         <HiCode />

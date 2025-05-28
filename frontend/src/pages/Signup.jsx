@@ -60,54 +60,78 @@ const Signup = () => {
     }
   }
 
-  return (
-    <div className="w-full h-screen bg-zinc-800 flex flex-row">
+ return (
+    <div className="w-full h-screen bg-zinc-800 flex flex-row" role="main">
       <div className="l w-1/2 h-screen rounded-xl overflow-hidden">
-        <img src={vCallPic} alt="people-on-video-call" className="h-full w-full object-cover" />
+        <img
+          src={vCallPic}
+          alt="People on a video call"
+          className="h-full w-full object-cover"
+        />
       </div>
+
       <div className="r w-1/2 h-screen flex justify-center items-center">
         <form
-          action=""
           method="POST"
-          className="bg-transparent border-2 border-zinc-700 rounded-md min-h-1/2 flex flex-col justify-center min-w-72 gap-3 py-10 px-8"
           onSubmit={handleSignUp}
+          className="bg-transparent border-2 border-zinc-700 rounded-md min-h-1/2 flex flex-col justify-center min-w-72 gap-3 py-10 px-8"
+          aria-label="Sign up form"
         >
-          <h1 className="text-white font-semibold justify-self-start text-3xl mb-10 text-center">
-            Sign Up
-          </h1>
+          <h1 className="text-white font-semibold text-3xl mb-10 text-center">Sign Up</h1>
+
+          <label htmlFor="username" className="sr-only">User name</label>
           <input
-            onChange={handleChange}
-            autoFocus
-            type="text"
+            id="username"
             name="username"
+            type="text"
             placeholder="User Name"
-            className="placeholder:text-zinc-400  text-center w-full text-white  border-2 border-zinc-700  px-3 py-2 outline-none rounded-md text-sm"
-          />
-          <input
+            autoFocus
             onChange={handleChange}
-            type="email"
+            required
+            aria-label="User name"
+            className="placeholder:text-zinc-400 text-center w-full text-white border-2 border-zinc-700 px-3 py-2 outline-none rounded-md text-sm"
+          />
+
+          <label htmlFor="email" className="sr-only">Email address</label>
+          <input
+            id="email"
             name="email"
+            type="email"
             placeholder="Email Address"
-            className="placeholder:text-zinc-400  text-center w-full text-white border-2 border-zinc-700  px-3 py-2 outline-none rounded-md text-sm"
-          />
-          <input
             onChange={handleChange}
-            type="password"
-            name="password"
-            placeholder="Password"
-            className="placeholder:text-zinc-400 text-center  w-full text-white border-2 border-zinc-700  px-3 py-2 outline-none rounded-md text-sm"
+            required
+            aria-label="Email address"
+            className="placeholder:text-zinc-400 text-center w-full text-white border-2 border-zinc-700 px-3 py-2 outline-none rounded-md text-sm"
           />
+
+          <label htmlFor="password" className="sr-only">Password</label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            placeholder="Password"
+            onChange={handleChange}
+            required
+            aria-label="Password"
+            className="placeholder:text-zinc-400 text-center w-full text-white border-2 border-zinc-700 px-3 py-2 outline-none rounded-md text-sm"
+          />
+
           <button
             type="submit"
             className="w-full bg-purple-600 text-white text-sm px-5 py-3 rounded-md mt-5 cursor-pointer hover:bg-purple-700 duration-300"
+            aria-label="Register"
           >
             Register
           </button>
+
           <span className="text-purple-600 text-center text-sm hover:underline mt-1">
-            <Link to="/login">Have an account? Sign in</Link>
+            <Link to="/login" aria-label="Already have an account? Sign in">
+              Have an account? Sign in
+            </Link>
           </span>
         </form>
       </div>
+      <ToastContainer />
     </div>
   );
 };
