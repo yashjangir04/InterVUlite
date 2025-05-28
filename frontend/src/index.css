@@ -13,8 +13,3 @@
   background: #212122; 
   border-radius: 5px;
 }
-
-:focus {
-  outline: 2px solid #93c5fd;
-  outline-offset: 2px;
-}

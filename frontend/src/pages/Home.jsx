@@ -116,7 +116,7 @@ const Home = () => {
         </button>
       </div>
 
-      <Footer />
+      <Footer aria-label="Footer" />
     </div>
   );
 };
